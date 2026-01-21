@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - English Tutor AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Left Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="nav-brand">
+            <a href="/">English Tutor AI</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+            <a href="/about" class="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                About
+            </a>
+            <a href="/contact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Contact
+            </a>
+            <a href="/privacy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Privacy
+            </a>
+            <a href="/terms">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                Terms
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            &copy; 2026 English Tutor AI
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="content-page">
+            <h1>About English Tutor AI</h1>
+
+            <section class="hero-section">
+                <p class="lead">Your free AI-powered English language learning companion, available 24/7 to help you improve your speaking and writing skills.</p>
+            </section>
+
+            <section>
+                <h2>Our Mission</h2>
+                <p>We believe everyone deserves access to quality English education. English Tutor AI was created to break down barriers to language learning by providing a free, accessible, and effective way to practice English anytime, anywhere.</p>
+            </section>
+
+            <section>
+                <h2>What We Offer</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>Conversational Practice</h3>
+                        <p>Engage in natural conversations with our AI tutor on any topic. Practice speaking and writing in a judgment-free environment.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Grammar Correction</h3>
+                        <p>Get instant feedback on your grammar mistakes with clear explanations to help you understand and learn from errors.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Voice Interaction</h3>
+                        <p>Practice your pronunciation and speaking skills with our voice chat feature. Speak naturally and get responses read aloud.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Vocabulary Building</h3>
+                        <p>Learn new words and expressions in context. Our AI suggests better vocabulary choices to expand your language skills.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>How It Works</h2>
+                <ol class="how-it-works">
+                    <li>
+                        <strong>Start a Conversation</strong>
+                        <p>Type a message or click the microphone to speak. Talk about any topic you like!</p>
+                    </li>
+                    <li>
+                        <strong>Get Instant Feedback</strong>
+                        <p>Our AI analyzes your English and provides corrections with helpful explanations.</p>
+                    </li>
+                    <li>
+                        <strong>Practice & Improve</strong>
+                        <p>Continue the conversation to practice. The more you use it, the more you learn!</p>
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h2>Who Is This For?</h2>
+                <ul>
+                    <li><strong>Students</strong> - Practice English outside of class</li>
+                    <li><strong>Professionals</strong> - Improve business English skills</li>
+                    <li><strong>Travelers</strong> - Prepare for trips to English-speaking countries</li>
+                    <li><strong>Anyone</strong> - Who wants to improve their English for free</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Our Technology</h2>
+                <p>English Tutor AI is powered by advanced large language models that understand context, grammar, and natural language patterns. We use:</p>
+                <ul>
+                    <li><strong>Groq AI</strong> - For fast, intelligent responses</li>
+                    <li><strong>Web Speech API</strong> - For voice recognition and text-to-speech</li>
+                    <li><strong>Modern Web Technologies</strong> - For a smooth, responsive experience</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Why Free?</h2>
+                <p>We believe in making education accessible. Our service is supported by advertisements, allowing us to offer English tutoring to everyone at no cost. Your support by using our service helps us continue this mission.</p>
+            </section>
+
+            <section class="cta-section">
+                <h2>Ready to Improve Your English?</h2>
+                <p>Start practicing now - no signup required!</p>
+                <a href="/" class="btn btn-primary btn-large">Start Learning</a>
+            </section>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 English Tutor AI. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/contact">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sidebar toggle for static pages
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            hamburgerBtn.addEventListener('click', function() {
+                hamburgerBtn.classList.toggle('active');
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('visible');
+            });
+
+            overlay.addEventListener('click', function() {
+                hamburgerBtn.classList.remove('active');
+                sidebar.classList.remove('open');
+                overlay.classList.remove('visible');
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    hamburgerBtn.classList.remove('active');
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('visible');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

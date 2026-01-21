@@ -1,0 +1,13 @@
+# Flask and web
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=21.0.0
+
+# AI
+groq>=0.11.0
+
+# Database
+sqlalchemy>=2.0.0
+
+# Environment
+python-dotenv>=1.0.0

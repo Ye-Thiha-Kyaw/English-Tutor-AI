@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - English Tutor AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Left Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="nav-brand">
+            <a href="/">English Tutor AI</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+            <a href="/about">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                About
+            </a>
+            <a href="/contact" class="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Contact
+            </a>
+            <a href="/privacy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Privacy
+            </a>
+            <a href="/terms">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                Terms
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            &copy; 2026 English Tutor AI
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="content-page">
+            <h1>Contact Us</h1>
+
+            <section>
+                <p class="lead">We'd love to hear from you! Whether you have questions, feedback, or suggestions, feel free to reach out.</p>
+            </section>
+
+            <section class="contact-info">
+                <div class="contact-card">
+                    <h3>Email</h3>
+                    <p>For general inquiries and support:</p>
+                    <a href="mailto:contact@englishtutorai.com">contact@englishtutorai.com</a>
+                </div>
+
+                <div class="contact-card">
+                    <h3>Response Time</h3>
+                    <p>We typically respond within 24-48 hours during business days.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <h3>Is English Tutor AI really free?</h3>
+                    <p>Yes! Our service is completely free to use. We're supported by advertisements, which allows us to offer English tutoring at no cost to you.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Do I need to create an account?</h3>
+                    <p>No account is needed. Just visit our website and start practicing immediately!</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Is my conversation data saved?</h3>
+                    <p>Your conversation data is only stored temporarily during your session. When you refresh the page or close your browser, the conversation is cleared. We don't permanently store your messages.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Why isn't the voice feature working?</h3>
+                    <p>The voice feature requires a modern browser (Chrome, Edge, or Safari) and microphone permission. Make sure you've allowed microphone access when prompted.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I use this on my phone?</h3>
+                    <p>Yes! English Tutor AI works on mobile devices. For the best voice experience, we recommend using Chrome on Android or Safari on iOS.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How accurate is the grammar correction?</h3>
+                    <p>Our AI is highly accurate for most common grammar issues. However, like any AI, it may occasionally make mistakes. For important documents, we recommend additional human review.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Can I suggest new features?</h3>
+                    <p>Absolutely! We love hearing from our users. Send your suggestions to our email and we'll consider them for future updates.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2>Report an Issue</h2>
+                <p>Found a bug or experiencing technical problems? Please email us with:</p>
+                <ul>
+                    <li>A description of the issue</li>
+                    <li>Your browser and device type</li>
+                    <li>Steps to reproduce the problem</li>
+                    <li>Any error messages you see</li>
+                </ul>
+                <p>This helps us fix issues faster and improve the service for everyone.</p>
+            </section>
+
+            <section class="cta-section">
+                <h2>Ready to Practice?</h2>
+                <a href="/" class="btn btn-primary btn-large">Start Learning English</a>
+            </section>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 English Tutor AI. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+                <a href="/contact">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sidebar toggle for static pages
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            hamburgerBtn.addEventListener('click', function() {
+                hamburgerBtn.classList.toggle('active');
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('visible');
+            });
+
+            overlay.addEventListener('click', function() {
+                hamburgerBtn.classList.remove('active');
+                sidebar.classList.remove('open');
+                overlay.classList.remove('visible');
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    hamburgerBtn.classList.remove('active');
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('visible');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
