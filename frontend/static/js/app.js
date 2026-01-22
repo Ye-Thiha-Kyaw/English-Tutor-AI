@@ -362,16 +362,7 @@ class EnglishTutor {
 
             this.recognition.onend = () => {
                 this.isRecording = false;
-
-                // If in voice mode and not intentionally stopped, restart
-                if (this.isVoiceMode && !this.isSpeaking) {
-                    // Small delay before restarting
-                    setTimeout(() => {
-                        if (this.isVoiceMode && !this.isSpeaking) {
-                            this.startListening();
-                        }
-                    }, 100);
-                }
+                // Don't auto-restart here - let speakAndWait handle restart after AI finishes
             };
 
             this.recognition.onerror = (event) => {
@@ -487,7 +478,7 @@ class EnglishTutor {
     }
 
     startListening() {
-        if (!this.isVoiceMode || this.isSpeaking) return;
+        if (!this.isVoiceMode || this.isSpeaking || this.isRecording) return;
 
         try {
             // Interrupt AI if speaking
@@ -498,6 +489,10 @@ class EnglishTutor {
             this.showStatusMessage('Listening... (speak naturally)');
         } catch (e) {
             console.log('Recognition already running or error:', e);
+            // If already running, that's okay
+            if (e.name === 'InvalidStateError') {
+                this.isRecording = true;
+            }
         }
     }
 
@@ -576,14 +571,21 @@ class EnglishTutor {
 
             // Speak the response
             if (fromVoice && this.isVoiceMode) {
-                this.showStatusMessage('Speaking... (start talking to interrupt)');
+                this.showStatusMessage('Speaking...');
                 await this.speakAndWait(data.message);
 
-                // After speaking, start listening again
+                // After speaking, wait a moment then start listening again
                 if (this.isVoiceMode) {
-                    this.startListening();
+                    this.showStatusMessage('Listening... (speak naturally)');
+                    // Extra delay to ensure mic doesn't pick up residual audio
+                    setTimeout(() => {
+                        if (this.isVoiceMode && !this.isSpeaking) {
+                            this.startListening();
+                        }
+                    }, 300);
                 }
-            } else {
+            } else if (!this.isVoiceMode) {
+                // Only auto-speak in non-voice mode (manual text input)
                 this.speak(data.message);
             }
 
@@ -729,6 +731,12 @@ class EnglishTutor {
                 return;
             }
 
+            // Stop any ongoing recognition to prevent picking up AI voice
+            if (this.recognition && this.isRecording) {
+                this.recognition.stop();
+                this.isRecording = false;
+            }
+
             this.synthesis.cancel();
             this.isSpeaking = true;
 
@@ -745,12 +753,17 @@ class EnglishTutor {
 
             utterance.onend = () => {
                 this.isSpeaking = false;
-                resolve();
+                // Add delay before resolving to let audio fully stop
+                setTimeout(() => {
+                    resolve();
+                }, 500);
             };
 
             utterance.onerror = () => {
                 this.isSpeaking = false;
-                resolve();
+                setTimeout(() => {
+                    resolve();
+                }, 300);
             };
 
             this.synthesis.speak(utterance);
