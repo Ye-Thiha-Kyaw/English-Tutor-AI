@@ -2,12 +2,20 @@
 import sys
 import os
 
-# Add backend directory to path
+# Add backend and database directories to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'database'))
 
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from tutor import EnglishTutor
+
+# Initialize database on startup
+try:
+    from models import init_database
+    init_database()
+except Exception as e:
+    print(f"Database initialization warning: {e}")
 
 app = Flask(__name__,
             template_folder='../frontend/templates',

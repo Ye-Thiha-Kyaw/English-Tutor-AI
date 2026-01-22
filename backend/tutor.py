@@ -1,11 +1,90 @@
-# English Tutor - Direct Groq Integration
+# English Tutor - Direct Groq Integration with API Key Rotation
 import json
 import os
+import threading
 from dotenv import load_dotenv
 from groq import Groq
 
 # Load environment variables
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+
+class APIKeyRotator:
+    """Manages rotation of multiple Groq API keys"""
+
+    def __init__(self):
+        self.keys = []
+        self.current_index = 0
+        self.lock = threading.Lock()
+        self.error_counts = {}
+        self.max_errors = 3  # Max consecutive errors before skipping a key
+
+        # Load API keys from environment
+        # GROQ_API_KEY_1, GROQ_API_KEY_2, GROQ_API_KEY_3
+        for i in range(1, 4):
+            key = os.getenv(f'GROQ_API_KEY_{i}', '')
+            if key:
+                self.keys.append(key)
+                self.error_counts[i - 1] = 0
+
+        # Fallback to single GROQ_API_KEY if no numbered keys
+        if not self.keys:
+            single_key = os.getenv('GROQ_API_KEY', '')
+            if single_key:
+                self.keys.append(single_key)
+                self.error_counts[0] = 0
+
+        print(f"API Key Rotator initialized with {len(self.keys)} key(s)")
+
+    def get_current_key(self) -> str:
+        """Get the current API key"""
+        if not self.keys:
+            return ''
+
+        with self.lock:
+            return self.keys[self.current_index]
+
+    def rotate_key(self, had_error: bool = False):
+        """Rotate to the next API key"""
+        if len(self.keys) <= 1:
+            return
+
+        with self.lock:
+            if had_error:
+                self.error_counts[self.current_index] += 1
+            else:
+                # Reset error count on success
+                self.error_counts[self.current_index] = 0
+
+            # Find next available key
+            attempts = 0
+            while attempts < len(self.keys):
+                self.current_index = (self.current_index + 1) % len(self.keys)
+
+                # Skip keys with too many errors
+                if self.error_counts[self.current_index] < self.max_errors:
+                    break
+                attempts += 1
+
+            # If all keys have errors, reset error counts and use first key
+            if attempts >= len(self.keys):
+                for i in range(len(self.keys)):
+                    self.error_counts[i] = 0
+                self.current_index = 0
+
+            print(f"Rotated to API key {self.current_index + 1}")
+
+    def get_client(self) -> Groq:
+        """Get a Groq client with current key"""
+        return Groq(api_key=self.get_current_key())
+
+    def get_key_count(self) -> int:
+        """Return number of available keys"""
+        return len(self.keys)
+
+
+# Global API key rotator instance
+api_rotator = APIKeyRotator()
 
 # Tutor mode - instant corrections
 TUTOR_SYSTEM_PROMPT = """You are an expert English language tutor. Your role is to:
@@ -81,13 +160,37 @@ Be thorough but constructive. Focus on patterns, not just individual errors."""
 
 class EnglishTutor:
     def __init__(self):
-        api_key = os.getenv('GROQ_API_KEY', '')
-        self.client = Groq(api_key=api_key)
+        self.rotator = api_rotator
         self.model = os.getenv('MODEL_NAME', 'llama-3.3-70b-versatile')
         self.conversation_history = []
         self.user_messages_log = []  # Store user messages for chat mode feedback
         self.max_history = 20
         self.mode = 'tutor'  # 'tutor' or 'chat'
+
+    def _make_api_call(self, messages, temperature=0.7, max_tokens=500):
+        """Make API call with automatic retry and key rotation"""
+        max_retries = self.rotator.get_key_count()
+        last_error = None
+
+        for attempt in range(max_retries):
+            try:
+                client = self.rotator.get_client()
+                response = client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
+                # Success - rotate for next request (load balancing)
+                if attempt == 0:
+                    self.rotator.rotate_key(had_error=False)
+                return response
+            except Exception as e:
+                last_error = e
+                print(f"API call failed with key {self.rotator.current_index + 1}: {e}")
+                self.rotator.rotate_key(had_error=True)
+
+        raise last_error if last_error else Exception("All API keys failed")
 
     def set_mode(self, mode: str):
         """Set the conversation mode"""
@@ -100,21 +203,17 @@ class EnglishTutor:
     def check_grammar(self, user_message: str) -> list:
         """Check grammar and return corrections"""
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a grammar checker. Respond ONLY with valid JSON, no other text."
-                    },
-                    {
-                        "role": "user",
-                        "content": GRAMMAR_CHECK_PROMPT.format(user_message=user_message)
-                    }
-                ],
-                temperature=0.3,
-                max_tokens=500
-            )
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are a grammar checker. Respond ONLY with valid JSON, no other text."
+                },
+                {
+                    "role": "user",
+                    "content": GRAMMAR_CHECK_PROMPT.format(user_message=user_message)
+                }
+            ]
+            response = self._make_api_call(messages, temperature=0.3, max_tokens=500)
 
             result_text = response.choices[0].message.content.strip()
 
@@ -159,12 +258,7 @@ Their grammar is correct! Respond naturally as a tutor - continue the conversati
         messages.append({"role": "user", "content": prompt})
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=0.7,
-                max_tokens=500
-            )
+            response = self._make_api_call(messages, temperature=0.7, max_tokens=500)
             return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Response generation error: {e}")
@@ -180,12 +274,7 @@ Their grammar is correct! Respond naturally as a tutor - continue the conversati
         messages.append({"role": "user", "content": user_message})
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=0.8,
-                max_tokens=500
-            )
+            response = self._make_api_call(messages, temperature=0.8, max_tokens=500)
             return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Response generation error: {e}")
@@ -254,21 +343,17 @@ Their grammar is correct! Respond naturally as a tutor - continue the conversati
         ])
 
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an expert English language analyst. Provide detailed, constructive feedback. Respond ONLY with valid JSON."
-                    },
-                    {
-                        "role": "user",
-                        "content": SESSION_FEEDBACK_PROMPT.format(user_messages=user_messages_text)
-                    }
-                ],
-                temperature=0.5,
-                max_tokens=1500
-            )
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert English language analyst. Provide detailed, constructive feedback. Respond ONLY with valid JSON."
+                },
+                {
+                    "role": "user",
+                    "content": SESSION_FEEDBACK_PROMPT.format(user_messages=user_messages_text)
+                }
+            ]
+            response = self._make_api_call(messages, temperature=0.5, max_tokens=1500)
 
             result_text = response.choices[0].message.content.strip()
 
