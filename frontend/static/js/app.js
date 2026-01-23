@@ -428,6 +428,18 @@ class EnglishTutor {
     }
 
     toggleVoiceMode() {
+        // If AI is speaking, tap to interrupt (skip to listening)
+        if (this.isSpeaking) {
+            this.interruptAI();
+            this.showStatusMessage('Listening... (speak naturally)');
+            setTimeout(() => {
+                if (this.isVoiceMode && !this.isSpeaking) {
+                    this.startListening();
+                }
+            }, 300);
+            return;
+        }
+
         if (this.isVoiceMode) {
             this.stopVoiceMode();
         } else {
@@ -478,12 +490,10 @@ class EnglishTutor {
     }
 
     startListening() {
+        // Don't start if not in voice mode, AI is speaking, or already recording
         if (!this.isVoiceMode || this.isSpeaking || this.isRecording) return;
 
         try {
-            // Interrupt AI if speaking
-            this.interruptAI();
-
             this.recognition.start();
             this.isRecording = true;
             this.showStatusMessage('Listening... (speak naturally)');
@@ -571,18 +581,17 @@ class EnglishTutor {
 
             // Speak the response
             if (fromVoice && this.isVoiceMode) {
-                this.showStatusMessage('Speaking...');
+                this.showStatusMessage('Speaking... (tap mic button to interrupt)');
                 await this.speakAndWait(data.message);
 
-                // After speaking, wait a moment then start listening again
+                // After speaking, wait then start listening again
                 if (this.isVoiceMode) {
                     this.showStatusMessage('Listening... (speak naturally)');
-                    // Extra delay to ensure mic doesn't pick up residual audio
                     setTimeout(() => {
                         if (this.isVoiceMode && !this.isSpeaking) {
                             this.startListening();
                         }
-                    }, 300);
+                    }, 500);
                 }
             } else if (!this.isVoiceMode) {
                 // Only auto-speak in non-voice mode (manual text input)
@@ -740,6 +749,14 @@ class EnglishTutor {
             this.synthesis.cancel();
             this.isSpeaking = true;
 
+            // Change button to show "tap to interrupt" state
+            this.voiceBtn.classList.add('speaking');
+            this.voiceBtn.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h12v12H6z"/>
+                </svg>
+            `;
+
             const utterance = new SpeechSynthesisUtterance(text);
 
             if (this.selectedVoice) {
@@ -753,6 +770,14 @@ class EnglishTutor {
 
             utterance.onend = () => {
                 this.isSpeaking = false;
+                // Restore button to recording state
+                this.voiceBtn.classList.remove('speaking');
+                this.voiceBtn.classList.add('recording');
+                this.voiceBtn.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    </svg>
+                `;
                 // Add delay before resolving to let audio fully stop
                 setTimeout(() => {
                     resolve();
@@ -761,6 +786,7 @@ class EnglishTutor {
 
             utterance.onerror = () => {
                 this.isSpeaking = false;
+                this.voiceBtn.classList.remove('speaking');
                 setTimeout(() => {
                     resolve();
                 }, 300);
