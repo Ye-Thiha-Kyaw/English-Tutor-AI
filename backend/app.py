@@ -69,32 +69,16 @@ def chat():
     except Exception as e:
         print(f"Error in chat: {e}")
         return jsonify({
-            'message': 'Sorry, there was an error processing your message. Please try again.',
+            'message': 'Oh sorry, something went wrong on my end. Can you try that again?',
             'corrections': [],
-            'feedback': {}
+            'feedback': {},
+            'messages_count': 0
         })
-
-
-@app.route('/api/mode', methods=['POST'])
-def set_mode():
-    """Switch between tutor and chat mode"""
-    data = request.json
-    mode = data.get('mode', 'tutor')
-
-    if mode not in ['tutor', 'chat']:
-        return jsonify({'error': 'Invalid mode'}), 400
-
-    tutor.set_mode(mode)
-    return jsonify({
-        'status': 'ok',
-        'mode': mode,
-        'message': f'Switched to {mode} mode'
-    })
 
 
 @app.route('/api/feedback', methods=['GET'])
 def get_feedback():
-    """Get comprehensive feedback for chat mode session"""
+    """Get comprehensive feedback on the user's English from the conversation"""
     try:
         feedback = tutor.get_session_feedback()
         return jsonify(feedback)

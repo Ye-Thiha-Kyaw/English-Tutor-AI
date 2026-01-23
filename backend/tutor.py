@@ -86,26 +86,37 @@ class APIKeyRotator:
 # Global API key rotator instance
 api_rotator = APIKeyRotator()
 
-# Tutor mode - instant corrections
-TUTOR_SYSTEM_PROMPT = """You are an expert English language tutor. Your role is to:
-1. Help users improve their English speaking and writing skills
-2. Correct grammar mistakes gently and explain why
-3. Suggest better vocabulary and expressions
-4. Encourage the user and make learning enjoyable
-5. Adapt to the user's proficiency level
+# Natural conversation prompt - like chatting with a native English speaking friend
+CHAT_SYSTEM_PROMPT = """You are a casual, friendly person chatting with a friend. Talk naturally like a real native English speaker in daily life.
 
-Always be patient, supportive, and provide clear explanations.
-Keep responses conversational and not too long."""
+IMPORTANT GUIDELINES:
+- Use casual, everyday language (contractions like "I'm", "don't", "gonna", "wanna", "kinda", "yeah", "nah")
+- Keep responses SHORT - 1-3 sentences max, like real texting/chatting
+- Use filler words naturally ("well", "like", "you know", "honestly", "actually", "I mean")
+- Show genuine reactions ("Oh nice!", "No way!", "That's awesome!", "Hmm", "Haha", "Aw man")
+- Ask casual follow-up questions to keep the chat going
+- Be warm and interested in what they say
+- Use informal expressions ("What's up?", "How's it going?", "That's cool", "For real?", "Same here")
+- Sometimes use incomplete sentences like real speech ("Pretty good.", "Not bad.", "Sounds fun!")
+- React emotionally - be excited, surprised, curious, sympathetic when appropriate
 
-# Chat mode - natural conversation like a friend
-CHAT_SYSTEM_PROMPT = """You are a friendly English-speaking conversation partner. Your role is to:
-1. Have natural, casual conversations like a native English speaker
-2. Talk about any topic the user wants - hobbies, news, life, etc.
-3. Be friendly, warm, and engaging
-4. Ask follow-up questions to keep the conversation going
-5. DO NOT correct grammar or mention language learning
+DO NOT:
+- Sound like a robot or AI assistant
+- Give long explanations or lectures
+- Use formal or stiff language
+- Correct their grammar (save that for feedback)
+- Say things like "That's a great question!" or "I'd be happy to help"
+- Start responses with "I" too often
 
-Act like a normal friend chatting, not a teacher. Keep responses natural and conversational."""
+Examples of natural responses:
+- "Oh yeah, I totally get that. What happened next?"
+- "Haha no way! That's hilarious"
+- "Aw that sucks. You okay?"
+- "Nice! I've been wanting to try that actually"
+- "Wait really? Tell me more!"
+- "Hmm I dunno, maybe try..."
+
+Just be a chill, friendly person having a normal chat."""
 
 GRAMMAR_CHECK_PROMPT = """Analyze the following text for grammar errors.
 For each error found, provide the original text, the correction, and a brief explanation.
@@ -163,9 +174,8 @@ class EnglishTutor:
         self.rotator = api_rotator
         self.model = os.getenv('MODEL_NAME', 'llama-3.3-70b-versatile')
         self.conversation_history = []
-        self.user_messages_log = []  # Store user messages for chat mode feedback
+        self.user_messages_log = []  # Store user messages for feedback
         self.max_history = 20
-        self.mode = 'tutor'  # 'tutor' or 'chat'
 
     def _make_api_call(self, messages, temperature=0.7, max_tokens=500):
         """Make API call with automatic retry and key rotation"""
@@ -192,126 +202,43 @@ class EnglishTutor:
 
         raise last_error if last_error else Exception("All API keys failed")
 
-    def set_mode(self, mode: str):
-        """Set the conversation mode"""
-        if mode in ['tutor', 'chat']:
-            self.mode = mode
-            # Clear history when switching modes
-            self.conversation_history = []
-            self.user_messages_log = []
-
-    def check_grammar(self, user_message: str) -> list:
-        """Check grammar and return corrections"""
-        try:
-            messages = [
-                {
-                    "role": "system",
-                    "content": "You are a grammar checker. Respond ONLY with valid JSON, no other text."
-                },
-                {
-                    "role": "user",
-                    "content": GRAMMAR_CHECK_PROMPT.format(user_message=user_message)
-                }
-            ]
-            response = self._make_api_call(messages, temperature=0.3, max_tokens=500)
-
-            result_text = response.choices[0].message.content.strip()
-
-            try:
-                start_idx = result_text.find('{')
-                end_idx = result_text.rfind('}') + 1
-                if start_idx != -1 and end_idx > start_idx:
-                    json_str = result_text[start_idx:end_idx]
-                    result = json.loads(json_str)
-                    return result.get('errors', [])
-            except json.JSONDecodeError:
-                pass
-
-        except Exception as e:
-            print(f"Grammar check error: {e}")
-
-        return []
-
-    def generate_tutor_response(self, user_message: str, corrections: list) -> str:
-        """Generate tutor response with corrections"""
-        messages = [{"role": "system", "content": TUTOR_SYSTEM_PROMPT}]
-
-        for msg in self.conversation_history[-10:]:
-            messages.append(msg)
-
-        if corrections:
-            correction_text = "\n".join([
-                f"- '{err.get('original', '')}' should be '{err.get('corrected', '')}'"
-                for err in corrections
-            ])
-            prompt = f"""The user said: "{user_message}"
-
-I found these grammar issues:
-{correction_text}
-
-Please respond naturally as a tutor - acknowledge what they said, gently mention the corrections with brief explanations, and continue the conversation. Keep it friendly and encouraging."""
-        else:
-            prompt = f"""The user said: "{user_message}"
-
-Their grammar is correct! Respond naturally as a tutor - continue the conversation and maybe ask a follow-up question to keep them practicing."""
-
-        messages.append({"role": "user", "content": prompt})
-
-        try:
-            response = self._make_api_call(messages, temperature=0.7, max_tokens=500)
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Response generation error: {e}")
-            return "I'm sorry, I encountered an error. Please try again."
-
     def generate_chat_response(self, user_message: str) -> str:
-        """Generate natural chat response without corrections"""
+        """Generate natural chat response like a native speaker"""
         messages = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}]
 
+        # Include recent conversation history for context
         for msg in self.conversation_history[-10:]:
             messages.append(msg)
 
         messages.append({"role": "user", "content": user_message})
 
         try:
-            response = self._make_api_call(messages, temperature=0.8, max_tokens=500)
+            # Higher temperature for more natural/varied responses
+            # Lower max_tokens to encourage shorter, chat-like responses
+            response = self._make_api_call(messages, temperature=0.9, max_tokens=150)
             return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"Response generation error: {e}")
-            return "I'm sorry, I encountered an error. Please try again."
+            return "Oh sorry, something went wrong. Can you say that again?"
 
     def process_message(self, user_message: str) -> dict:
-        """Process a user message based on current mode"""
+        """Process a user message - natural chat conversation"""
         # Add to history
         self.conversation_history.append({"role": "user", "content": user_message})
 
-        if self.mode == 'tutor':
-            # Tutor mode: check grammar and provide corrections
-            corrections = self.check_grammar(user_message)
-            ai_response = self.generate_tutor_response(user_message, corrections)
-            tips = [err.get('explanation', '') for err in corrections[:3] if err.get('explanation')]
+        # Log user message for feedback later
+        self.user_messages_log.append(user_message)
 
-            result = {
-                'message': ai_response,
-                'corrections': corrections,
-                'feedback': {
-                    'tips': tips,
-                    'encouragement': 'Keep practicing!' if not corrections else 'Good effort!'
-                },
-                'mode': 'tutor'
-            }
-        else:
-            # Chat mode: natural conversation, log for later feedback
-            self.user_messages_log.append(user_message)
-            ai_response = self.generate_chat_response(user_message)
+        # Generate natural conversation response
+        ai_response = self.generate_chat_response(user_message)
 
-            result = {
-                'message': ai_response,
-                'corrections': [],
-                'feedback': {},
-                'mode': 'chat',
-                'messages_count': len(self.user_messages_log)
-            }
+        result = {
+            'message': ai_response,
+            'corrections': [],
+            'feedback': {},
+            'mode': 'chat',
+            'messages_count': len(self.user_messages_log)
+        }
 
         # Add AI response to history
         self.conversation_history.append({"role": "assistant", "content": ai_response})

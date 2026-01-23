@@ -8,10 +8,7 @@ class EnglishTutor {
         this.voiceBtn = document.getElementById('voice-btn');
         this.voiceSelect = document.getElementById('voice-select');
 
-        // Mode elements
-        this.tutorModeBtn = document.getElementById('tutor-mode-btn');
-        this.chatModeBtn = document.getElementById('chat-mode-btn');
-        this.modeDescription = document.getElementById('mode-description');
+        // Feedback button
         this.getFeedbackBtn = document.getElementById('get-feedback-btn');
 
         // Feedback modal elements
@@ -34,8 +31,7 @@ class EnglishTutor {
         this.silenceDelay = 1500; // Wait 1.5 seconds of silence before sending
         this.lastTranscript = '';
 
-        // Current mode: 'tutor' or 'chat'
-        this.currentMode = 'tutor';
+        // Message count for feedback
         this.chatMessagesCount = 0;
 
         this.initEventListeners();
@@ -59,14 +55,6 @@ class EnglishTutor {
             });
         }
 
-        // Mode toggle buttons
-        if (this.tutorModeBtn) {
-            this.tutorModeBtn.addEventListener('click', () => this.switchMode('tutor'));
-        }
-        if (this.chatModeBtn) {
-            this.chatModeBtn.addEventListener('click', () => this.switchMode('chat'));
-        }
-
         // Get feedback button
         if (this.getFeedbackBtn) {
             this.getFeedbackBtn.addEventListener('click', () => this.getFeedback());
@@ -81,70 +69,6 @@ class EnglishTutor {
                 if (e.target === this.feedbackModal) this.closeModal();
             });
         }
-    }
-
-    async switchMode(mode) {
-        if (mode === this.currentMode) return;
-
-        if (this.currentMode === 'chat' && this.chatMessagesCount > 0) {
-            const shouldGetFeedback = confirm('You have messages in chat mode. Would you like to get feedback before switching?');
-            if (shouldGetFeedback) {
-                await this.getFeedback();
-            }
-        }
-
-        try {
-            const response = await fetch('/api/mode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode })
-            });
-
-            const data = await response.json();
-
-            if (data.status === 'ok') {
-                this.currentMode = mode;
-                this.chatMessagesCount = 0;
-                this.updateModeUI();
-                this.clearChat();
-                this.showWelcomeMessage();
-            }
-        } catch (error) {
-            console.error('Error switching mode:', error);
-        }
-    }
-
-    updateModeUI() {
-        const feedbackBtn = document.getElementById('get-feedback-btn');
-
-        if (this.currentMode === 'tutor') {
-            this.tutorModeBtn.classList.add('active');
-            this.chatModeBtn.classList.remove('active');
-            this.modeDescription.textContent = 'Practice your English with instant corrections';
-            if (feedbackBtn) {
-                feedbackBtn.setAttribute('data-visible', 'false');
-            }
-        } else {
-            this.chatModeBtn.classList.add('active');
-            this.tutorModeBtn.classList.remove('active');
-            this.modeDescription.textContent = 'Chat naturally, get feedback when you\'re done';
-            if (feedbackBtn) {
-                feedbackBtn.setAttribute('data-visible', 'true');
-            }
-        }
-    }
-
-    showWelcomeMessage() {
-        const welcomeMessages = {
-            tutor: "Hello! I'm your English tutor. Feel free to practice speaking or writing with me. I'll help you improve your grammar and vocabulary with instant corrections. What would you like to talk about today?",
-            chat: "Hey there! I'm here to chat with you like a friend. Just talk naturally about anything - hobbies, movies, your day, whatever you want! When you're done, click 'Get Feedback' to see how you did. So, what's on your mind?"
-        };
-
-        this.addMessage(welcomeMessages[this.currentMode], 'assistant');
-    }
-
-    clearChat() {
-        this.chatContainer.innerHTML = '';
     }
 
     async getFeedback() {
@@ -569,14 +493,10 @@ class EnglishTutor {
 
             this.hideLoading();
 
-            this.addMessage(data.message, 'assistant', data.corrections);
+            this.addMessage(data.message, 'assistant');
 
-            if (data.mode === 'chat' && data.messages_count) {
+            if (data.messages_count) {
                 this.chatMessagesCount = data.messages_count;
-            }
-
-            if (data.feedback && data.mode === 'tutor') {
-                this.showFeedback(data.feedback);
             }
 
             // Speak the response
@@ -609,20 +529,11 @@ class EnglishTutor {
         }
     }
 
-    addMessage(text, sender, corrections = []) {
+    addMessage(text, sender) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
 
         let displayText = this.formatMessage(text);
-
-        if (corrections && corrections.length > 0 && this.currentMode === 'tutor') {
-            corrections.forEach(correction => {
-                displayText = displayText.replace(
-                    correction.original,
-                    `<span class="correction">${correction.original}</span> → <span class="correction-text">${correction.corrected}</span>`
-                );
-            });
-        }
 
         messageDiv.innerHTML = `<div class="message-bubble">${displayText}</div>`;
         this.chatContainer.appendChild(messageDiv);
@@ -794,24 +705,6 @@ class EnglishTutor {
 
             this.synthesis.speak(utterance);
         });
-    }
-
-    showFeedback(feedback) {
-        const existingFeedback = document.querySelector('.feedback-section-inline');
-        if (existingFeedback) existingFeedback.remove();
-
-        if (feedback.tips && feedback.tips.length > 0) {
-            const feedbackDiv = document.createElement('div');
-            feedbackDiv.className = 'feedback-section-inline';
-            feedbackDiv.innerHTML = `
-                <h4>Tips for Improvement</h4>
-                <ul>
-                    ${feedback.tips.map(tip => `<li>${tip}</li>`).join('')}
-                </ul>
-            `;
-            this.chatContainer.appendChild(feedbackDiv);
-            this.scrollToBottom();
-        }
     }
 
     scrollToBottom() {
